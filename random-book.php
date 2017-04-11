@@ -22,6 +22,7 @@ $response = $client->get("56943009.xml", [
 		'key' => $secrets['key'],
 		'v' => 2,
 		'per_page' => 2000,
+		'shelf' => 'to-read',
 	]
 ]);
 
