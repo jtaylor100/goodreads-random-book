@@ -12,29 +12,39 @@ $secrets = include "secrets.php";
 
 $client = new Client([
     // Base URI is used with relative requests
-    'base_uri' => 'http://www.goodreads.com/review/list/',
+    'base_uri' => 'http://www.goodreads.com/review/list/' . $secrets['user'].".xml",
     // You can set any number of default request options.
-    'timeout'  => 2.0,
+    'timeout'  => 5.0,
 ]);
 
-$response = $client->get("56943009.xml", [
+// First send a request to get the total number of books
+$response = $client->get("", [
 	'query' => [
 		'key' => $secrets['key'],
 		'v' => 2,
-		'per_page' => 2000,
+		'per_page' => 1,
 		'shelf' => 'to-read',
 	]
 ]);
-
 $xml = new SimpleXMLElement($response->getBody());
-$numberOfBooks = (int) $xml->reviews['end'];
-$bookIndex = rand(0, $numberOfBooks-1);
-$chosenBook = $xml->reviews->review[$bookIndex]->book;
+$numberOfBooks = (int) $xml->reviews['total'];
+$bookPage = rand(1, $numberOfBooks);
+
+// Send another request to get details of the selected book
+$response = $client->get("", [
+	'query' => [
+		'key' => $secrets['key'],
+		'v' => 2,
+		'per_page' => 1,
+		'shelf' => 'to-read',
+		'page' => $bookPage
+	]
+]);
+$xml = new SimpleXMLElement($response->getBody());
+$chosenBook = $xml->reviews->review[0]->book;
 
 echo <<<EOT
 
-BOOK FOUND
-===============================================================================
 Title:		{$chosenBook->title}
 Author:		{$chosenBook->authors->author[0]->name}
 
